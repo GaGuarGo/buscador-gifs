@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_unnecessary_containers
+
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -22,7 +24,7 @@ class _HomePageState extends State<HomePage> {
           "https://api.giphy.com/v1/gifs/trending?api_key=BoH0H9yDg58bbQou9pK4USn8j4ziwSVj&limit=20&offset=0&rating=g&bundle=messaging_non_clips"));
     } else {
       response = await http.get(Uri.parse(
-          "https://api.giphy.com/v1/gifs/search?api_key=BoH0H9yDg58bbQou9pK4USn8j4ziwSVj&q=$_search&limit=20&offset=$_offset&rating=g&lang=en&bundle=messaging_non_clips"));
+          "https://api.giphy.com/v1/gifs/search?api_key=BoH0H9yDg58bbQou9pK4USn8j4ziwSVj&q=$_search&limit=19&offset=$_offset&rating=g&lang=en&bundle=messaging_non_clips"));
     }
 
     return json.decode(response.body);
@@ -44,7 +46,10 @@ class _HomePageState extends State<HomePage> {
             padding: const EdgeInsets.all(10.0),
             child: TextField(
               onSubmitted: (text) {
-                _search = text;
+                setState(() {
+                  _search = text;
+                  _offset = 0;
+                });
               },
               decoration: const InputDecoration(
                   labelText: "Pesquise Aqui!",
@@ -86,6 +91,14 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  int _getCount(List data) {
+    if (_search.isEmpty) {
+      return data.length;
+    } else {
+      return data.length + 1;
+    }
+  }
+
   Widget _createGifTable(BuildContext context, AsyncSnapshot snapshot) {
     return GridView.builder(
       padding: const EdgeInsets.all(10.0),
@@ -94,15 +107,40 @@ class _HomePageState extends State<HomePage> {
         crossAxisSpacing: 10,
         mainAxisSpacing: 10,
       ),
-      itemCount: snapshot.data["data"].length,
+      itemCount: _getCount(snapshot.data["data"]),
       itemBuilder: (context, index) {
-        return GestureDetector(
-          child: Image.network(
-            snapshot.data["data"][index]["images"]["fixed_height"]["url"],
-            height: 300.0,
-            fit: BoxFit.cover,
-          ),
-        );
+        if (_search.isEmpty || index < snapshot.data["data"].length) {
+          return GestureDetector(
+            child: Image.network(
+              snapshot.data["data"][index]["images"]["fixed_height"]["url"],
+              height: 300.0,
+              fit: BoxFit.cover,
+            ),
+          );
+        } else {
+          return Container(
+            child: GestureDetector(
+              child: const Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.add,
+                      color: Colors.white,
+                      size: 70,
+                    ),
+                    Text(
+                      "Carregar Mais...",
+                      style: TextStyle(color: Colors.white, fontSize: 22),
+                    )
+                  ]),
+              onTap: () {
+                setState(() {
+                  _offset += 19;
+                });
+              },
+            ),
+          );
+        }
       },
     );
   }
