@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:buscador_gifs/ui/gif_page.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:share/share.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -122,6 +123,9 @@ class _HomePageState extends State<HomePage> {
               height: 300.0,
               fit: BoxFit.cover,
             ),
+            onLongPress: () {
+              Share.share(snapshot.data["images"]["fixed_height"]["url"]);
+            },
           );
         } else {
           return Container(
